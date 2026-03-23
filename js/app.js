@@ -264,20 +264,43 @@ function renderQuizWelcome() {
     });
 }
 
-function startQuiz() {
-    // Initialize quiz state
-    APP_STATE.quizState = {
-        questions: getRandomQuestions(10),
-        currentQuestionIndex: 0,
-        userAnswers: [],
-        startTime: Date.now(),
-        timer: setInterval(updateTimer, 1000),
-        timeLeft: 20 * 60,
-        progress: []
-    };
+let timerInterval = null;
 
-    renderQuestion();
-    startTimer();
+function updateTimer() {
+  const timerEl = document.getElementById("timer");
+  if (!timerEl || !APP_STATE.quizState) return;
+
+  const timeLeft = APP_STATE.quizState.timeLeft;
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  timerEl.textContent = `Tempo rimasto: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  if (APP_STATE.quizState.timeLeft <= 0) {
+    clearInterval(timerInterval);
+    timerEl.textContent = "Tempo scaduto";
+    return;
+  }
+
+  APP_STATE.quizState.timeLeft--;
+}
+
+function startQuiz() {
+  clearInterval(timerInterval);
+
+  APP_STATE.quizState = {
+    questions: getRandomQuestions(10),
+    currentQuestionIndex: 0,
+    userAnswers: [],
+    startTime: Date.now(),
+    timeLeft: 20 * 60,
+    progress: []
+  };
+
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+
+  renderQuestion();
 }
 
 function getRandomQuestions(count) {
